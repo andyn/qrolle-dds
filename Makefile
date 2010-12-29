@@ -14,24 +14,33 @@ CC = avr-gcc
 OBJCOPY = avr-objcopy
 SIZE = avr-size
 RM = rm
+RMDIR = rmdir
+MKDIR = mkdir
 CFLAGS = -std=c99 -pedantic -Wall -Wextra -DF_CPU=4000000UL -DREVISION=$(REVISION) -mmcu=atmega8 -Os
 
 # Source files
 SRCS = src/main.c
-# Output binary file
-TARGET = bin/qrolle
+# Output directory and binary name
+BUILD = bin
+TARGET = qrolle
+BUILD_TARGET = $(BUILD)/$(TARGET)
 
 .PHONY: all debug clean
 
-all:
-	$(CC) $(CFLAGS) $(FREQ_MATH) -o $(TARGET).elf $(SRCS)
-	$(OBJCOPY) -j .text -j .data -O ihex $(TARGET).elf $(TARGET).hex
-	$(SIZE) --mcu=atmega8 $(TARGET).hex
+all: $(BUILD)
+	$(CC) $(CFLAGS) $(FREQ_MATH) -o $(BUILD_TARGET).elf $(SRCS)
+	$(OBJCOPY) -j .text -j .data -O ihex $(BUILD_TARGET).elf $(BUILD_TARGET).hex
+	$(SIZE) --mcu=atmega8 $(BUILD_TARGET).hex
 
-debug:
-	$(CC) $(CFLAGS) -g -o $(TARGET)-debug.elf $(SRCS)
+debug: $(BUILD)
+	$(CC) $(CFLAGS) -g -o $(BUILD_TARGET)-debug.elf $(SRCS)
+
+$(BUILD):
+	$(MKDIR) $(BUILD)
 
 clean:
-	-$(RM) $(TARGET).elf
-	-$(RM) $(TARGET)-debug.elf
-	-$(RM) $(TARGET).hex
+	-$(RM) $(BUILD_TARGET).elf
+	-$(RM) $(BUILD_TARGET)-debug.elf
+	-$(RM) $(BUILD_TARGET).hex
+	-$(RMDIR) $(BUILD)
+
